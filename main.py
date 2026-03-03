@@ -1,11 +1,20 @@
 import json
 import os
+import urllib.request
+import urllib.parse
 
 
-def load_data(file_path):
-  """ Loads a JSON file """
-  with open(file_path, "r") as handle:
-    return json.load(handle)
+API_BASE = "https://api.api-ninjas.com/v1/animals"
+API_KEY = "dYc5rkFfHySUZSJRb5GwT5xBmIyXJ7mkZwXsnmqj"
+
+
+def fetch_animals_from_api(name):
+    """Holt Tier-Daten von der API Ninja Animals API."""
+    params = urllib.parse.urlencode({"name": name})
+    url = f"{API_BASE}?{params}"
+    req = urllib.request.Request(url, headers={"X-Api-Key": API_KEY})
+    with urllib.request.urlopen(req) as response:
+        return json.loads(response.read().decode())
 
 
 def serialize_animal(animal):
@@ -36,14 +45,28 @@ def serialize_animal(animal):
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 template_path = os.path.join(BASE_DIR, "_static", "animals_template.html")
-data_path = os.path.join(BASE_DIR, "data", "animals_data.json")
 output_path = os.path.join(BASE_DIR, "_static", "animals.html")
 
 
 def main():
-    print("Lade Daten aus:", data_path)
-    animals_data = load_data(data_path)
-    print(f"  -> {len(animals_data)} Tiere gelesen")
+    animal_name = input("Tier suchen (z.B. Fox): ").strip() or "Fox"
+    print(f"Rufe API auf für: {animal_name!r}")
+    try:
+        animals_data = fetch_animals_from_api(animal_name)
+    except urllib.error.HTTPError as e:
+        print(f"API-Fehler: {e.code} – {e.reason}")
+        return
+    except urllib.error.URLError as e:
+        print(f"Netzwerkfehler: {e.reason}")
+        return
+    except json.JSONDecodeError as e:
+        print(f"Ungültige API-Antwort: {e}")
+        return
+
+    if not animals_data:
+        print("Keine Tiere gefunden. Versuche einen anderen Suchbegriff.")
+        return
+    print(f"  -> {len(animals_data)} Tiere von der API geladen")
 
     print("Lade Template:", template_path)
     with open(template_path, encoding="utf-8") as template_file:
