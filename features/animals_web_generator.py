@@ -1,8 +1,10 @@
+"""Generates the animals HTML page from fetched animal data."""
 import os
 from data import data_fetcher
 
 
 def serialize_animal(animal):
+    """Return HTML list item for one animal (name, diet, location, type)."""
     animal_output = ""
     animal_output += '<li class="cards__item">\n'
 
@@ -33,6 +35,7 @@ output_path = os.path.join(_PROJECT_ROOT, "_static", "animals.html")
 
 
 def main():
+    """Ask for an animal name, fetch data, generate HTML and write to _static."""
     animal_name = input("Please enter an animal: ").strip() or "Fox"
     data = data_fetcher.fetch_data(animal_name)
 

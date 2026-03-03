@@ -1,3 +1,4 @@
+"""Fetches animal data from the API Ninja Animals API."""
 import json
 import os
 import urllib.request
