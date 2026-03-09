@@ -34,23 +34,31 @@ template_path = os.path.join(_PROJECT_ROOT, "_static", "animals_template.html")
 output_path = os.path.join(_PROJECT_ROOT, "_static", "animals.html")
 
 
+def _no_results_message(animal_name):
+    """Return HTML for the 'no animals found' message to show on the website."""
+    escaped = animal_name.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+    return (
+        '<li class="cards__item">'
+        '<div class="card__text">'
+        f'<p>No animals found for &quot;{escaped}&quot;. Please try another search.</p>'
+        "</div></li>"
+    )
+
+
 def main():
     """Ask for an animal name, fetch data, generate HTML and write to _static."""
     animal_name = input("Please enter an animal: ").strip() or "Fox"
     data = data_fetcher.fetch_data(animal_name)
 
-    if not data:
-        print("No animals found. Try a different search term.")
-        return
-
-    print(f"  -> {len(data)} animals loaded")
-
     with open(template_path, encoding="utf-8") as template_file:
         template_content = template_file.read()
 
-    output = ""
-    for animal in data:
-        output += serialize_animal(animal)
+    if not data:
+        output = _no_results_message(animal_name)
+        print("No animals found. A message has been shown on the website.")
+    else:
+        output = "".join(serialize_animal(animal) for animal in data)
+        print(f"  -> {len(data)} animals loaded")
 
     text = template_content.replace("__REPLACE_ANIMALS_INFO__", output)
 
